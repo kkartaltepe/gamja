@@ -134,7 +134,55 @@ class LogLine extends Component {
 				if (msg.command == "NOTICE") {
 					prefix = suffix = "-";
 				}
-				content = html`${prefix}${createNick(msg.prefix.name)}${suffix} ${linkify(stripANSI(text), onChannelClick)}`;
+
+				// Twitch stuff.
+				if (msg.tags["mod"] == "1") {
+				    prefix = "@" + prefix;
+				} else if (msg.tags["subscriber"] == "1") {
+				    prefix = "+" + prefix;
+				}
+				if (msg.tags["user-type"] == "staff" || msg.tags["user-type"] == "global_mod") {
+				    prefix = "~" + prefix;
+			    }
+			    let emoteURL = {}
+			    if (msg.tags["emotes-url"] !== null && msg.tags["emotes-url"] !== undefined && msg.tags["emotes-url"].length > 0) {
+			        let emotes = msg.tags["emotes-url"].split("/");
+			        for (let i = 0; i < emotes.length; ++i) {
+			            let e = emotes[i].split(":", 2)
+			            // Birth of yet another base64 encoding.
+			            emoteURL[e[0]] = atob(e[1].replaceAll("_", "="))
+			        }
+			    }
+			    if (msg.tags["emotes"] !== null && msg.tags["emotes"] !== undefined && msg.tags["emotes"].length > 0) {
+			        let replacements = [];
+			        let emotes = msg.tags["emotes"].split("/");
+			        for (let i = 0; i < emotes.length; ++i) {
+                        let e = emotes[i].split(":");
+                        let eid = e[0];
+                        let ranges = e[1].split(",").map(x => x.split("-").map(s => parseInt(s, 10)));
+                        for(let j = 0; j < ranges.length; ++j) {
+                            replacements.push([ranges[j], eid]);
+                        }
+			        }
+			        replacements.sort((a, b) => a[0][0] - b[0][0]);
+
+			        let newText = html`${""}`;
+			        let cur = 0;
+			        for (let i = 0; i < replacements.length; ++i) {
+                        let r = replacements[i];
+                        let s = r[0][0];
+                        let e = r[0][1]+1;
+                        let url = Object.keys(emoteURL).length == 0 ? "https://static-cdn.jtvnw.net/emoticons/v2/" + r[1] + "/static/light/1.0" : emoteURL[text.slice(s,e)] ;
+                        newText = html`${newText}${linkify(stripANSI(text.slice(cur, s)), onChannelClick)}<img src=${url} height="28" alt=${text.slice(s, e)} />`;
+                        cur = e;
+			        }
+			        newText = html`${newText}${text.slice(cur)}`;
+			        text = newText;
+			    } else {
+			        text = html`${linkify(stripANSI(text), onChannelClick)}`
+			    }
+				// content = html`${prefix}${createNick(msg.prefix.name)}${suffix} ${linkify(stripANSI(text), onChannelClick)}`;
+				content = html`${prefix}${createNick(msg.prefix.name)}${suffix} ${text}`;
 			}
 
 			let status = null;
