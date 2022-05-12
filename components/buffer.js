@@ -116,7 +116,10 @@ class LogLine extends Component {
 		case "NOTICE":
 		case "PRIVMSG":
 			target = msg.params[0];
-			let text = msg.params[1];
+			// Javascript why dont you let me use utf8 buffers...
+			const enc = new TextEncoder();
+			const dec = new TextDecoder();
+			let text = enc.encode(msg.params[1]);
 
 			let ctcp = irc.parseCTCP(msg);
 			if (ctcp) {
@@ -171,17 +174,16 @@ class LogLine extends Component {
 			        for (let i = 0; i < replacements.length; ++i) {
                         let r = replacements[i];
                         let s = r[0][0];
-                        let e = r[0][1]+1;
-                        let url = Object.keys(emoteURL).length == 0 ? "https://static-cdn.jtvnw.net/emoticons/v2/" + r[1] + "/static/light/1.0" : emoteURL[text.slice(s,e)] ;
-                        newText = html`${newText}${linkify(stripANSI(text.slice(cur, s)), onChannelClick)}<img src=${url} height="28" alt=${text.slice(s, e)} />`;
+                        let e = r[0][1]+1; // twitch uses inclusive end, but slice is exclusive end.
+                        let url = Object.keys(emoteURL).length == 0 ? "https://static-cdn.jtvnw.net/emoticons/v2/" + r[1] + "/static/light/1.0" : emoteURL[dec.decode(text.slice(s,e))] ;
+                        newText = html`${newText}${linkify(stripANSI(dec.decode(text.slice(cur, s))), onChannelClick)}<img src=${url} height="28" width="28" alt=${dec.decode(text.slice(s, e))} />`;
                         cur = e;
 			        }
-			        newText = html`${newText}${text.slice(cur)}`;
+			        newText = html`${newText}${dec.decode(text.slice(cur))}`;
 			        text = newText;
 			    } else {
-			        text = html`${linkify(stripANSI(text), onChannelClick)}`
+			        text = html`${linkify(stripANSI(dec.decode(text)), onChannelClick)}`
 			    }
-				// content = html`${prefix}${createNick(msg.prefix.name)}${suffix} ${linkify(stripANSI(text), onChannelClick)}`;
 				content = html`${prefix}${createNick(msg.prefix.name)}${suffix} ${text}`;
 			}
 
