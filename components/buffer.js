@@ -116,10 +116,7 @@ class LogLine extends Component {
 		case "NOTICE":
 		case "PRIVMSG":
 			target = msg.params[0];
-			// Javascript why dont you let me use utf8 buffers...
-			const enc = new TextEncoder();
-			const dec = new TextDecoder();
-			let text = enc.encode(msg.params[1]);
+			let text = msg.params[1];
 
 			let ctcp = irc.parseCTCP(msg);
 			if (ctcp) {
@@ -139,21 +136,73 @@ class LogLine extends Component {
 				}
 
 				// Twitch stuff.
-				if (msg.tags["mod"] == "1") {
-				    prefix = "@" + prefix;
-				} else if (msg.tags["subscriber"] == "1") {
-				    prefix = "+" + prefix;
-				}
-				if (msg.tags["user-type"] == "staff" || msg.tags["user-type"] == "global_mod") {
-				    prefix = "~" + prefix;
+			    const prefixSort = {
+			        "&": 0,
+			        "~": 1,
+			        "@": 2,
+			        "%": 3,
+			        "+": 4,
+			        "": 5,
+			        "_": 100,
+			    }
+			    const badgeToPrefix = {
+			        "broadcaster": "&",
+			        "owner": "&",
+			        "staff": "~",
+			        "partner": "~", // "verified" on twitch. Only bots?
+			        "admin": "@",
+			        "moderator": "@",
+			        "verified": "%", // verified on yt, just a big channel.
+			        "vip": "%",
+			        "new": "+", // "new member" but we cut on spaces.
+			        "member": "+",
+			        "subscriber": "+",
+
+                    // Twitch garbage badges
+                    "premium": "_",
+                    "turbo": "_",
+                    "hype-train": "_",
+                    "bits-charity": "_",
+                    "bits": "_",
+                    "sub-gifter": "_",
+                    "sub-gift-leader": "_",
+                    "twitchcon2017": "_",
+                    "glitchcon2020": "_",
+                    "glhf-pledge": "_",
+
+			        "unknown": "_",
+			    }
+			    if (msg.tags["badges"] !== null && msg.tags["badges"] !== undefined && msg.tags["badges"].length > 0) {
+			        let unknown = []
+			        let badges = msg.tags["badges"].split(",");
+			        let p = "";
+			        for (let i = 0; i < badges.length; ++i) {
+			            let pTmp = badgeToPrefix[badges[i].split("/")[0]] || "unknown";
+			            if (prefixSort[p] > prefixSort[pTmp]) {
+			                p = pTmp;
+			            }
+			            if (pTmp == "unknown") {
+			                unknown.push(badges[i])
+			            }
+			        }
+			        if (p.length > 0) {
+			            prefix = p + prefix;
+			            let pp = "[" + unknown.join(",") + "]";
+			            if (unknown.length > 0 ) {
+			                prefix = pp + prefix;
+			            }
+			        }
+			    }
+			    if (msg.tags["amount"] !== null && msg.tags["amount"] !== undefined && msg.tags["amount"].length > 0) {
+                    prefix = "[" + msg.tags["amount"] + "]" + prefix;
 			    }
 			    let emoteURL = {}
 			    if (msg.tags["emotes-url"] !== null && msg.tags["emotes-url"] !== undefined && msg.tags["emotes-url"].length > 0) {
 			        let emotes = msg.tags["emotes-url"].split("/");
 			        for (let i = 0; i < emotes.length; ++i) {
-			            let e = emotes[i].split(":", 2)
+			            let e = emotes[i].split(":", 2);
 			            // Birth of yet another base64 encoding.
-			            emoteURL[e[0]] = atob(e[1].replaceAll("_", "="))
+			            emoteURL[e[0]] = atob(e[1].replaceAll("_", "="));
 			        }
 			    }
 			    if (msg.tags["emotes"] !== null && msg.tags["emotes"] !== undefined && msg.tags["emotes"].length > 0) {
@@ -175,14 +224,14 @@ class LogLine extends Component {
                         let r = replacements[i];
                         let s = r[0][0];
                         let e = r[0][1]+1; // twitch uses inclusive end, but slice is exclusive end.
-                        let url = Object.keys(emoteURL).length == 0 ? "https://static-cdn.jtvnw.net/emoticons/v2/" + r[1] + "/static/light/1.0" : emoteURL[dec.decode(text.slice(s,e))] ;
-                        newText = html`${newText}${linkify(stripANSI(dec.decode(text.slice(cur, s))), onChannelClick)}<img src=${url} height="28" width="28" alt=${dec.decode(text.slice(s, e))} />`;
+                        let url = Object.keys(emoteURL).length == 0 ? "https://static-cdn.jtvnw.net/emoticons/v2/" + r[1] + "/static/light/1.0" : emoteURL[text.slice(s,e)] ;
+                        newText = html`${newText}${linkify(stripANSI(text.slice(cur, s)), onChannelClick)}<img src=${url} height="28" width="28" alt=${text.slice(s, e)} />`;
                         cur = e;
 			        }
-			        newText = html`${newText}${dec.decode(text.slice(cur))}`;
+			        newText = html`${newText}${text.slice(cur)}`;
 			        text = newText;
 			    } else {
-			        text = html`${linkify(stripANSI(dec.decode(text)), onChannelClick)}`
+			        text = html`${linkify(stripANSI(text), onChannelClick)}`
 			    }
 				content = html`${prefix}${createNick(msg.prefix.name)}${suffix} ${text}`;
 			}
