@@ -1749,6 +1749,11 @@ export default class App extends Component {
 			if (bouncerNetID) {
 				activeBouncerNetwork = this.state.bouncerNetworks.get(bouncerNetID);
 			}
+
+			// Make scrollback configurable
+			if (activeBuffer.messages.length > 2000) {
+                activeBuffer.messages = activeBuffer.messages.slice(-1000)
+            }
 		}
 
 		if (this.state.connectForm) {
