@@ -91,6 +91,7 @@ class LogLine extends Component {
 		let msg = this.props.message;
 		let buf = this.props.buffer;
 		let server = this.props.server;
+		let hasExtraTags = this.props.hasExtraTags;
 
 		let onNickClick = this.props.onNickClick;
 		let onChannelClick = this.props.onChannelClick;
@@ -110,6 +111,7 @@ class LogLine extends Component {
 		}
 
 		let lineClass = "";
+		let contentPrefix = html``;
 		let content;
 		let invitee, target, account;
 		switch (msg.command) {
@@ -142,7 +144,7 @@ class LogLine extends Component {
 			        "@": 2,
 			        "%": 3,
 			        "+": 4,
-			        "": 5,
+			        " ": 5,
 			        "_": 100,
 			    }
 			    const badgeToPrefix = {
@@ -164,18 +166,22 @@ class LogLine extends Component {
                     "hype-train": "_",
                     "bits-charity": "_",
                     "bits": "_",
+                    "bits-leader": "_",
                     "sub-gifter": "_",
                     "sub-gift-leader": "_",
                     "twitchcon2017": "_",
+                    "twitchconNA2019": "_",
                     "glitchcon2020": "_",
                     "glhf-pledge": "_",
+			        // Im a slave to the casino
+			        "predictions": "_",
 
 			        "unknown": "_",
 			    }
 			    if (msg.tags["badges"] !== null && msg.tags["badges"] !== undefined && msg.tags["badges"].length > 0) {
 			        let unknown = []
 			        let badges = msg.tags["badges"].split(",");
-			        let p = "";
+			        let p = " ";
 			        for (let i = 0; i < badges.length; ++i) {
 			            let pTmp = badgeToPrefix[badges[i].split("/")[0]] || "unknown";
 			            if (prefixSort[p] > prefixSort[pTmp]) {
@@ -185,14 +191,15 @@ class LogLine extends Component {
 			                unknown.push(badges[i])
 			            }
 			        }
-			        if (p.length > 0) {
-			            prefix = p + prefix;
-			            let pp = "[" + unknown.join(",") + "]";
-			            if (unknown.length > 0 ) {
-			                prefix = pp + prefix;
-			            }
+			        prefix = p + " " + prefix;
+			        let pp = "[" + unknown.join(",") + "]";
+			        if (unknown.length > 0 ) {
+			            prefix = pp + prefix;
 			        }
+			    } else if (hasExtraTags) { // we have badges but no badge tag on this message. Add blank.
+                    prefix = "  " + prefix;
 			    }
+
 			    if (msg.tags["amount"] !== null && msg.tags["amount"] !== undefined && msg.tags["amount"].length > 0) {
                     prefix = "[" + msg.tags["amount"] + "]" + prefix;
 			    }
@@ -233,7 +240,8 @@ class LogLine extends Component {
 			    } else {
 			        text = html`${linkify(stripANSI(text), onChannelClick)}`
 			    }
-				content = html`${prefix}${createNick(msg.prefix.name)}${suffix} ${text}`;
+				contentPrefix = html`${prefix}${createNick(msg.prefix.name)}${suffix}`
+				content = html`${text}`;
 			}
 
 			let status = null;
@@ -379,9 +387,13 @@ class LogLine extends Component {
 
 		return html`
 			<div class="logline ${lineClass}" data-key=${msg.key}>
+				<span>
 				<${Timestamp} date=${new Date(msg.tags.time)} url=${getMessageURL(buf, msg)}/>
 				${" "}
-				${content}
+				${contentPrefix}
+				${" "}
+				</span>
+				<div class="logcontent">${content}</div>
 			</div>
 		`;
 	}
@@ -701,6 +713,7 @@ export default class Buffer extends Component {
 		let onChannelClick = this.props.onChannelClick;
 		let onNickClick = this.props.onNickClick;
 		let onVerifyClick = this.props.onVerifyClick;
+		let hasExtraTags = this.props.hasExtraTags;
 
 		function createLogLine(msg) {
 			return html`
@@ -709,6 +722,7 @@ export default class Buffer extends Component {
 					message=${msg}
 					buffer=${buf}
 					server=${server}
+					hasExtraTags=${hasExtraTags}
 					onChannelClick=${onChannelClick}
 					onNickClick=${onNickClick}
 					onVerifyClick=${onVerifyClick}

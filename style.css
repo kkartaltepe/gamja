@@ -385,6 +385,14 @@ details summary[role="button"] {
 #buffer .logline {
 	white-space: pre-wrap;
 }
+#buffer .logcontent {
+    display: inline;
+    white-space: pre-wrap;
+}
+#buffer .logcontent img {
+    display: inline;
+    vertical-align: text-bottom;
+}
 #buffer .talk, #buffer .motd {
 	color: var(--main-color);
 }

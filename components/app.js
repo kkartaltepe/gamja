@@ -1740,6 +1740,7 @@ export default class App extends Component {
 			return html`<section id="connect"></section>`;
 		}
 
+		let hasExtraTags = false;
 		let activeBuffer = null, activeServer = null, activeBouncerNetwork = null;
 		if (this.state.buffers.get(this.state.activeBuffer)) {
 			activeBuffer = this.state.buffers.get(this.state.activeBuffer);
@@ -1754,6 +1755,7 @@ export default class App extends Component {
 			if (activeBuffer.messages.length > 2000) {
                 activeBuffer.messages = activeBuffer.messages.slice(-1000)
             }
+			hasExtraTags = this.clients.get(activeServer.id).caps.enabled.has("twitch.tv/tags") || this.clients.get(activeServer.id).caps.enabled.has("youtube.com/tags");
 		}
 
 		if (this.state.connectForm) {
@@ -1973,6 +1975,7 @@ export default class App extends Component {
 					<${Buffer}
 						buffer=${activeBuffer}
 						server=${activeServer}
+					    hasExtraTags=${hasExtraTags}
 						bouncerNetwork=${activeBouncerNetwork}
 						settings=${this.state.settings}
 						onChannelClick=${this.handleChannelClick}
