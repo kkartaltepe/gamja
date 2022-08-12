@@ -156,6 +156,7 @@ class LogLine extends Component {
 			        "moderator": "@",
 			        "verified": "%", // verified on yt, just a big channel.
 			        "vip": "%",
+			        "founder": "%",
 			        "new": "+", // "new member" but we cut on spaces.
 			        "member": "+",
 			        "subscriber": "+",
@@ -170,11 +171,21 @@ class LogLine extends Component {
                     "sub-gifter": "_",
                     "sub-gift-leader": "_",
                     "twitchcon2017": "_",
+                    "twitchcon2018": "_",
                     "twitchconNA2019": "_",
                     "glitchcon2020": "_",
+                    "twitchconEU2022": "_",
                     "glhf-pledge": "_",
+                    "battlerite_1": "_",
+                    "overwatch-league-insider_2019A": "_",
+                    "overwatch-league-insider_1": "_",
+                    "no_audio": "_",
+                    "no_video": "_",
+                    "eso_1": "_",
+                    "moments": "_",
+                    "artist-badge": "_",
 			        // Im a slave to the casino
-			        "predictions": "_",
+			        // "predictions": "_",
 
 			        "unknown": "_",
 			    }
