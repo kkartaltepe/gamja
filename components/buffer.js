@@ -140,6 +140,7 @@ class LogLine extends Component {
 				// Twitch stuff.
 			    const prefixSort = {
 			        "&": 0,
+			        "$": 0,
 			        "~": 1,
 			        "@": 2,
 			        "%": 3,
@@ -187,8 +188,21 @@ class LogLine extends Component {
 			        // Im a slave to the casino
 			        // "predictions": "_",
 
+			        // lets show supers as a badge, synth badge.
+			        "superchat": "$",
+
 			        "unknown": "_",
 			    }
+
+			    if (msg.tags["amount"] !== null && msg.tags["amount"] !== undefined && msg.tags["amount"].length > 0) {
+			        if (msg.tags["badges"] !== null && msg.tags["badges"] !== undefined && msg.tags["badges"].length > 0) {
+			            msg.tags["badges"] += ",superchat";
+			        } else {
+			            msg.tags["badges"] = "superchat";
+			        }
+                    suffix = suffix + " [" + msg.tags["amount"] + "]"
+			    }
+
 			    if (msg.tags["badges"] !== null && msg.tags["badges"] !== undefined && msg.tags["badges"].length > 0) {
 			        let unknown = []
 			        let badges = msg.tags["badges"].split(",");
@@ -211,9 +225,6 @@ class LogLine extends Component {
                     prefix = "  " + prefix;
 			    }
 
-			    if (msg.tags["amount"] !== null && msg.tags["amount"] !== undefined && msg.tags["amount"].length > 0) {
-                    prefix = "[" + msg.tags["amount"] + "]" + prefix;
-			    }
 			    let emoteURL = {}
 			    if (msg.tags["emotes-url"] !== null && msg.tags["emotes-url"] !== undefined && msg.tags["emotes-url"].length > 0) {
 			        let emotes = msg.tags["emotes-url"].split("/");
